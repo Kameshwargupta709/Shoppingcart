@@ -1,0 +1,14 @@
+<button (click)="loadapplistemployees();">Product</button>
+<button (click)="loadappcart();">Cart</button>
+
+
+<div *ngIf= 'loadComponent'>
+<app-list-employees></app-list-employees>
+</div>
+
+
+<div *ngIf= 'loadComponents'>
+<app-cart></app-cart>
+</div>
+
+
