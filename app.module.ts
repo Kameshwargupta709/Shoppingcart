@@ -1,27 +1,31 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import {RouterModule,Routes} from '@angular/router';
+import {FormsModule} from '@angular/forms';
 import { AppComponent } from './app.component';
 import { ListEmployeesComponent } from './employees/list-employees.component';
-import {EmployeeService} from './employees/employee.service';
-import { CartComponent } from './employees/cart.component';
+import { CreateEmployeeComponent } from './employees/create-employee.component';
 
-const appRoutes: Routes=[
-  {path:'list', component: ListEmployeesComponent} 
+const appRoute: Routes=[
+  {path:'list',component:ListEmployeesComponent},
+  {path:'create',component:CreateEmployeeComponent},
+  {path:'',redirectTo:'/list',pathMatch:'full'}
 ];
+
 
 
 @NgModule({
   declarations: [
     AppComponent,
     ListEmployeesComponent,
-    CartComponent
+    CreateEmployeeComponent
   ],
   imports: [
     BrowserModule,
-    RouterModule
+    FormsModule,
+    RouterModule.forRoot(appRoute)
   ],
-  providers: [EmployeeService],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
