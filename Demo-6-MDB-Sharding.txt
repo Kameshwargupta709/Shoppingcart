@@ -1,0 +1,300 @@
+----------------------------MongoDB Replication-------------------------------------------------------------
+Step-1) Start 3 command prompt and run following 3 commands
+start mongod --replSet cgRepl --logpath  D:\Srivastava\SoftwareRunning\MongoDB\mongo1\cglog1.log --dbpath  D:\Srivastava\SoftwareRunning\MongoDB\mongo1\data1\db1 --port 27017 --smallfiles --oplogSize 64
+start mongod --replSet cgRepl --logpath  D:\Srivastava\SoftwareRunning\MongoDB\mongo2\cglog2.log --dbpath D:\Srivastava\SoftwareRunning\MongoDB\mongo2\data2\db2 --port 27018 --smallfiles --oplogSize 64
+start mongod --replSet cgRepl --logpath  D:\Srivastava\SoftwareRunning\MongoDB\mongo3\cglog3.log --dbpath  D:\Srivastava\SoftwareRunning\MongoDB\mongo3\data3\db3 --port 27019 --smallfiles --oplogSize 64
+-----------------------------------------------------------------------------------------------
+Step-2) then start another command prompt and run following command
+	> mongo --port 27017 
+-----------------------------------------------------------------------------------------------
+Step-3) Paste the following command
+	config={_id:"cgRepl",members:[{_id:0,host:"localhost:27017"},{_id:1,host:"localhost:27018"},{_id:3,host:"localhost:27019"}]}
+-----------------------------------------------------------------------------------------------
+Step-4) >rs.initiate(config);
+-----------------------------------------------------------------------------------------------
+Step-5)	See the status and connect to the primary server
+	>rs.status()
+-----------------------------------------------------------------------------------------------
+Step-6)Insert the data in employees collection using primary node.
+	>db.employees.insert({_id:9,firstname:"Abhi",lastname:"Sri",salary:89000,gender:"male"})	
+-----------------------------------------------------------------------------------------------
+Step-7) now we can connect to secondary node. And we will find that data inserted    by primary node is available with	secondary node. So start another command prompt and 
+	Start secondary node as follows
+	> mongo --port 27018
+-----------------------------------------------------------------------------------------------
+Step-8) then slave with primary
+	>rs.slaveOk();
+	cgRepl:SECONDARY> db.employees.find();
+-----------------------------------------------------------------------------------------------
+Step-9) You can only read data from secondary
+-----------------------------------------------------------------------------------------------
+Step-10) you can use oplog.rs to analyze how replication is happening internally.
+ 		 Go To Primary Node
+		cgRepl:PRIMARY> use cgdb		
+		cgRepl:PRIMARY> show collections
+		cgRepl:PRIMARY> db.oplog.rs.find().pretty();
+		cgRepl:PRIMARY>
+-----------------------------------------------------------------------------------------------
+Step-11) Shutdown primary node database.
+	>db.shutdownServer()
+	>use admin
+	>db.shutdownServer()
+-----------------------------------------------------------------------------------------------
+Step-12) So If you shut down primary database then secondary will become primary
+	So in secondary node you can type
+	>db.employees.find()
+	Note:- U will find that secondary has become primary. Now
+	You can insert data in secondary. But if u again start primary then 
+	Again second node will become primary
+-----------------------------------------------------------------------
+---------------------------Steps-For-Sharding-----------------------------------------------
+Step-1) Start the command Prompt and start mongod server as configuration server as
+	follows		
+	C:\>md temp\fresh\config1
+	C:\>cd temp
+	C:\TEMP>start mongod --configsvr --dbpath fresh\config1er
+-----------------------------------------------------------------------------------------------
+Step-2) Start Mongos that is shrading routing mongo process
+	 and specify where is the config server
+	C:\TEMP> start mongos --configdb punl65530
+-----------------------------------------------------------------------------------------------
+Step-3) Now we want mongod server to hold the shard itself.
+	So for this demo will start 2 mongod server.So that we can have 2 shards
+	C:\TEMP>md fresh\m1
+	C:\TEMP>md fresh\m2
+	C:\TEMP>start mongod --port 30001 --dbpath fresh\m1
+	C:\TEMP>start mongod --port 30002 --dbpath fresh\m2
+-----------------------------------------------------------------------------------------------
+Step-4) we need to configure the shard.
+	In sharded environment all we be done by mongos.
+	It is the one that knows about rest of the clusters.
+	It is the one that ensure things done right.
+	It is the one that does document shifting and chunking
+	
+	So start mongos server as follows
+		C:\TEMP>mongo
+			2018-05-23T11:24:23.720+
+			MongoDB shell version: 3
+			Connecting to: test
+	-----------------------------------------------------------------------------------------------
+Step-5) Mongos do not know about our data bearing member   which will hold   the document. We need to configure to tell cluster about them.
+	 We will us following command
+	mongos> sh.addShard('punl65530:30001')
+		{ "shardAdded" : "shard0000", "ok" : 1 }
+	mongos> sh.addShard('punl65530:30002')
+		{ "shardAdded" : "shard0001", "ok" : 1 }
+	mongos>sh.status();
+-----------------------------------------------------------------------------------------------
+Step-6) while sharding you have to opt for specific collection
+      for specific database u want to shard.
+	Enable sharding for specific database and check the status as follows
+	mongos>sh.enableSharding("cgdb.employees");
+	mongos>sh.status();
+-----------------------------------------------------------------------------------------------
+Step-7) mongos> sh.shardCollection("cgdb.employees",{lastname:1,age:1})
+		{ "collectionsharded" : "cgdb.employees", "ok" : 1 }
+-----------------------------------------------------------------------------------------------
+Step-8) now u can check that indexes are creted on sharding field
+	mongos> db.employees.getIndexes();
+	[
+        	{
+                "v" : 1,
+                "key" : {
+                        "_id" : 1
+                },
+                "name" : "_id_",
+                "ns" : "cgdb.employees"
+       	 	},
+      	  	{
+                "v" : 1,
+                "key" : {
+                        "lastname" : 1,
+                        "age" : 1
+                },
+                "name" : "lastname_1_age_1",
+                "ns" : "cgdb.employees"
+        	}
+	]
+---------------------------------------------------------------
+Step-9)
+	mongos> show collections
+		employees
+		system.indexes
+	
+	mongos> use config
+		switched to db config
+	mongos> db.chunks.find().pretty();
+		{
+        		"_id" : "cgdb.employees-lastname_MinKeyage_MinKey",
+       				 "lastmod" : Timestamp(1, 0),
+       			 "lastmodEpoch" : ObjectId("5b0508c960ab3ec8f589d556"),
+        		"ns" : "cgdb.employees",
+        		"min" : {
+             			   "lastname" : { "$minKey" : 1 },
+              	 		 "age" : { "$minKey" : 1 }
+        			},
+       			 "max" : {
+              		 	 "lastname" : { "$maxKey" : 1 },
+              		  	"age" : { "$maxKey" : 1 }
+       			 },
+        		"shard" : "shard0000"
+		}
+		
+
+	mongos> db.employees.find().pretty();
+	mongos> use cgdb
+		switched to db cgdb
+	mongos> db.employees.find().pretty();
+	mongos> db.employees.insert({lastname:"pachput",age:24})
+		WriteResult({ "nInserted" : 1 })
+	mongos> db.employees.find().pretty();
+	{
+        	"_id" : ObjectId("5b050b461ba66709b43c297e"),
+       		 "lastname" : "pachput",
+       		 "age" : 24
+	}
+	mongos> db.chunks.find().pretty();
+	mongos> use config
+		switched to db config
+		mongos> db.chunks.find().pretty();
+	
+-----------------------------GridFS Demo--------------------------------
+Start the command prompt and type following commands
+>mongofiles -d cgdb put D:\Users\vaissriv\Desktop\temp\MongoFile\Ang1.pdf
+>mongofiles -d cgdb put D:\Users\vaissriv\Desktop\temp\MongoFile\Ang2.pdf
+>mongofiles -d cgdb list
+ >db.fs.chunks.find().pretty();
+>mongofiles -d cgdb get D:\Users\vaissriv\Desktop\temp\MongoFile\Ang2.pdf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	

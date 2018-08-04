@@ -1,0 +1,244 @@
+--------------------------url--------------------------------
+https://dzone.com/articles/install-set-and-start-mongodb
+https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/
+https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/
+sc.exe create MongoDB binPath= "\"D:\Srivastava\SoftwareRunning\MongoDB\mongodb\mongod.exe\" --service --config=\"D:\Srivastava\SoftwareRunning\MongoDB\mongodb\mongod.cfg\"" DisplayName= "MongoDB" start= "auto"
+-------------------------------------------------working-----------------------------------------------------------------Step-1) Install the software. 
+---------------------------------------------------------------------------------------------------------------------------
+Step-2) set the path variable in the  environment variable option as
+	set path=D:\Srivastava\SoftwareRunning\MongoDB\mongodb\bin
+---------------------------------------------------------------------------------------------------------------------------
+Step-3)Run Command prompt as administrator
+---------------------------------------------------------------------------------------------------------------------------
+Step-4) mongod.exe  --logpath=D:\Srivastava\SoftwareRunning\MongoDB\mongodb\log\cglog.log 
+	Note- --logpath option specifies alterdate path for log files
+---------------------------------------------------------------------------------------------------
+Step-5) And start the MongoDB Server as follows
+	> mongod.exe  --dbpath=D:\Srivastava\SoftwareRunning\MongoDB\mongodb\data\db
+	Note- --dbpath option specifies alterdate path for data files
+		and This will show waiting for connections message on
+ 		the console output indicates that the mongod.exe 
+		process is running successfully.
+		OR If you have C:\data\db folder You can also start mongo db using only
+		>mongod.exe
+-----------------------------------Working---------------------------------------------------------------------
+Step-6) Now Start Another command promt in administartor Mode
+	1)after connected to monodb server type following command 
+		>mongo.exe
+	2) Show  MongoDB databse  Lists using 
+		> show dbs
+			local  0.078GB
+
+-----------------------------------------------------------------------------------------
+
+
+Ex-1)Create Index On Firstname 
+	> db.employees.createIndex({firstname:-1})
+----------------------------------------------
+Ex-2)>Show All Indexes
+	> db.employees.getIndexes()
+-------------------------------------------
+Ex-3)Drop  Index
+	> db.employees.dropIndex({firstname:-1})
+---------------------------------------------------------
+Ex-4)	Returns a document that describes the process and indexes.
+	> db.employees.find().explain()
+	{
+        "queryPlanner" : {
+                "plannerVersion" : 1,
+                "namespace" : "cgdb.employees",
+                "indexFilterSet" : false,
+                "parsedQuery" : {
+                        "$and" : [ ]
+                },
+                "winningPlan" : {
+                        "stage" : "COLLSCAN",
+                        "filter" : {
+                                "$and" : [ ]
+                        },
+                        "direction" : "forward"
+                },
+                "rejectedPlans" : [ ]
+        },
+        "serverInfo" : {
+                "host" : "PUNL65530",
+                "port" : 27017,
+                "version" : "3.0.15",
+                "gitVersion" : "b8ff507269c382bc100fc52f75f48d54cd42ec3b
+: enterprise"
+        },
+        "ok" : 1
+}
+>
+------------------------------------------------------------------------------
+Ex-5)Multi Key Index
+	db.employees.ensureIndex( {"annlGrossSal.year": 1 } )
+
+Note :annula Groos Salary in employee is array of objects. so the 
+above index created is called as multi key index.
+---------------------------------------------------------------
+
+Ex-5)  >db.employees.find().pretty()
+>db.employees.ensureIndex( {firstname: 1 } )
+>db.employees.find().hint( { firstname: 1 } ).pretty()
+---------------------------------------------------------------
+Ex-6) Find all  indexes od database
+> db.system.indexes.find().pretty()
+----------------------------------------------------------
+
+Ex-7)>db.runCommand({"distinct" : "employees", "key" : "firstname"})
+
+
+Ex-8) Group Department in employees collection
+    > db.runCommand({group:{ns: 'employees',key: { "deptinfo._id": 1 },$reduce:function(curr,result ){},initial:{}}})
+
+------------------------------------------
+GeoSpatial Index
+	>db.products.ensureIndex({"orderInfo.address.coords": "2d" } )
+
+	OR
+
+	>db.products.ensureIndex({"orderInfo.address.coords": "2dsphere" } )
+
+
+	>db.products.find({"orderInfo.address.coords" : {"$near" : [8,4]}})
+	
+---------------------------------------------------------------
+ 
+clonecgDb = db.getSiblingDB('cgdb')
+clonecgDb.employees.count()
+clonecgDb.employees.findOne()
+-----------------------------------------Text Index------------------
+	Create text base index on lastname column
+	>db.employees.ensureIndex( {lastname: "text" } ) 
+	
+	Create hash index on last name column
+	db.employees.ensureIndex( { lastname: "hashed" } )  
+
+	Create Unique index on last name column
+	db.employees.ensureIndex( { lastname: "unique" },{"unique":true} )  
+
+
+------------------------------------------------------------
+Create Sparse Index To ignore Null Values
+
+>db.employees.ensureIndex( { lastname: 1 }, { sparse: true } );
+
+>db.employees.find().sort( { lastname: -1 } ).hint( { lastname: 1 } )
+-----------------------------------------------------------
+Plan--------------------------------------
+db.employees.find({salary:{$gte:30000}}).explain()
+---------------------------------------------------------------
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
