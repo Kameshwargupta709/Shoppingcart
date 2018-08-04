@@ -1,29 +1,31 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import {RouterModule,Routes} from '@angular/router';
-import {FormsModule} from '@angular/forms';
+import { RouterModule,Routes} from '@angular/router';
+
 import { AppComponent } from './app.component';
-import { ListEmployeesComponent } from './employees/list-employees.component';
-import { CreateEmployeeComponent } from './employees/create-employee.component';
+import { AddMoviesComponent } from './add-movies/add-movies.component';
+import { SearchMoviesComponent } from './search-movies/search-movies.component';
+import { FormsModule,ReactiveFormsModule } from '@angular/forms';
 
-const appRoute: Routes=[
-  {path:'list',component:ListEmployeesComponent},
-  {path:'create',component:CreateEmployeeComponent},
-  {path:'',redirectTo:'/list',pathMatch:'full'}
+
+
+const appRoutes: Routes=[
+  {path :'Add Movies',component: AddMoviesComponent},
+  {path :'Search Movies',component: SearchMoviesComponent}
 ];
-
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    ListEmployeesComponent,
-    CreateEmployeeComponent
+    AddMoviesComponent,
+    SearchMoviesComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
-    RouterModule.forRoot(appRoute)
+   ReactiveFormsModule,
+    RouterModule.forRoot(appRoutes)
   ],
   providers: [],
   bootstrap: [AppComponent]
